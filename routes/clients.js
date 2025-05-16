@@ -3,7 +3,7 @@ const router = express.Router()
 const Clients = require("../controllers/ControllerClients")
 
 
-router.get("/api/clients", Clients.getClients);
+router.post("/api/clients", Clients.getClients);
 
 
 module.exports = router
