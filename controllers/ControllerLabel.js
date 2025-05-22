@@ -35,12 +35,14 @@ class Etiqueta {
             }
 
             const pdfBuffer = await EtiquetaProdutos.gerarPDFEtiqueta(response);
-            const base64PDF = pdfBuffer.toString("base64");
 
-            return res.json({
-                message: "PDF gerado com sucesso",
-                pdfBase64: base64PDF,
+            // Define os headers para enviar PDF direto no response
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'inline; filename="etiquetas.pdf"',
             });
+
+            return res.send(pdfBuffer);
 
         } catch (error) {
             console.error("Erro ao gerar etiquetas:", error.message);
