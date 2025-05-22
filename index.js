@@ -5,7 +5,7 @@ const AuthRouters = require("./routes/auth")
 const ClientsRouters = require("./routes/clients")
 const ProductsRouters = require("./routes/products")
 
-const port = 8080
+const port = 3030
 app.use(express.urlencoded({
     extended: true,
 }))
