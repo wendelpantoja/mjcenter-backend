@@ -5,8 +5,12 @@ class Etiqueta {
     async getProducts(req, res) {
         const products = req.body.codigoSistema;
 
+        if(products.length > 10) {
+            return res.status(400).json({ message: "O sistema gera apenas 10 etiquetas" })
+        }
+
         if (!products || products.length === 0) {
-            return res.status(400).json({ message: "Preencha o campo" });
+            return res.status(400).json({ message: "Preencha o campo ou verifique se está correto" });
         }
 
         try {
@@ -36,7 +40,6 @@ class Etiqueta {
 
             const pdfBuffer = await EtiquetaProdutos.gerarPDFEtiqueta(response);
 
-            // Define os headers para enviar PDF direto no response
             res.set({
                 'Content-Type': 'application/pdf',
                 'Content-Disposition': 'inline; filename="etiquetas.pdf"',

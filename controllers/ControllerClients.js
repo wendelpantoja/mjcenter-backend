@@ -1,5 +1,4 @@
 const instance = require("../services/api.service")
-require("dotenv").config()
 
 class Clients {
     async getClients(req, res) {
@@ -29,8 +28,10 @@ class Clients {
                 return {
                     name: client.nome,
                     document: client.documento == "" ? "Sem documento" : client.documento,
-                    limitCredit: client.limiteCredito == undefined ? "Sem crédito" : client.limiteCredito.valorTotal.toString(),
-                    balance: "",
+                    limitCredit: client.limiteCredito === undefined ? "Sem Crédito" : new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                    }).format(client.limiteCredito?.valorTotal),
                     contact: client.telefones[0] == undefined ? "Sem contato" : `(${client.telefones[0].ddd}) ${client.telefones[0].numero}`,
                 }
             })
