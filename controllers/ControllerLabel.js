@@ -2,7 +2,7 @@ const instance = require("../services/api.service");
 const EtiquetaProdutos = require("../models/label");
 
 class Etiqueta {
-    async getProducts(req, res) {
+    async getProductToLabel(req, res) {
         const products = req.body.codigoSistema;
 
         if(products.length > 10) {
