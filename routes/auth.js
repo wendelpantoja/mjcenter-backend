@@ -1,9 +1,11 @@
 const express = require("express")
 const router = express.Router()
-const Auth = require("../controllers/ControllerAuth")
+const Auth = require("../controllers/AuthController")
+const autenticarToken = require("../middlewares/authMiddleware")
 
 
-router.get("/api/login", Auth.login);
+router.post("/auth/login", Auth.login);
+router.post('/auth/register-admin', autenticarToken, Auth.registerAdmin);
 
 
 module.exports = router
