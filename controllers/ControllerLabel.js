@@ -3,8 +3,9 @@ const EtiquetaProdutos = require("../models/label");
 
 class Etiqueta {
     async getProductToLabel(req, res) {
-        const products = req.body.codigoSistema;
-
+        const products = req.body.dataLabel.systemCode;
+        const isDefaultLabel = req.body.dataLabel.isDefaultLabel;
+        
         if(products.length > 10) {
             return res.status(400).json({ message: "O sistema gera apenas 10 etiquetas" })
         }
@@ -38,7 +39,7 @@ class Etiqueta {
                 return res.status(404).json({ message: "Nenhum produto válido foi retornado." });
             }
 
-            const pdfBuffer = await EtiquetaProdutos.gerarPDFEtiqueta(response);
+            const pdfBuffer = await EtiquetaProdutos.gerarPDFEtiqueta(response, isDefaultLabel);
 
             res.set({
                 'Content-Type': 'application/pdf',
