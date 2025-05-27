@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const SECRET = 'seu_segredo_super_secreto'; // Depois movemos pro .env
+const SECRET = process.env.JWT_SECRET; // Depois movemos pro .env
 
 function autenticarToken(req, res, next) {
   const authHeader = req.headers.authorization;
