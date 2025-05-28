@@ -28,10 +28,7 @@ class Clients {
                 return {
                     name: client.nome,
                     document: client.documento == "" ? "Sem documento" : client.documento,
-                    limitCredit: client.limiteCredito === undefined ? "Sem Crédito" : new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                    }).format(client.limiteCredito?.valorTotal),
+                    limitCredit: client.limiteCredito === undefined ? undefined : client.limiteCredito?.valorTotal,
                     contact: client.telefones[0] == undefined ? "Sem contato" : `(${client.telefones[0].ddd}) ${client.telefones[0].numero}`,
                 }
             })

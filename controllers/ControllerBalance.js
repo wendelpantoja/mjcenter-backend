@@ -29,14 +29,9 @@ class Balance {
                 return conta.baixada === false && dataVencimento < hoje;
             }).length;
 
-            const saldoConvertido = new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-            }).format(totalAberto);
-
             res.json([
                 {
-                    balance: saldoConvertido,
+                    balance: totalAberto,
                     overdueInstallments: parcelasEmAtraso
                 }
             ]);
