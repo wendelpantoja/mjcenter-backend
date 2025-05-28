@@ -35,7 +35,12 @@ class Clients {
 
             res.json(clients)
         } catch (error) {
-            console.log(error)
+            console.error("Erro no getClients:", error);
+            return res.status(500).json({
+                alert: "Erro interno do servidor.",
+                message: "Por favor, tente novamente mais tarde ou atualize a página.",
+                error: "Erro interno do servidor. Por favor, tente novamente mais tarde.",
+            });
         }
     }
 }
