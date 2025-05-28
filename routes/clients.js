@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
-const Clients = require("../controllers/ControllerClients")
-const Balance = require("../controllers/ControllerBalance")
+const Clients = require("../controllers/ClientController")
+const Balance = require("../controllers/BalanceController")
 const autenticarToken = require("../middlewares/authMiddleware")
 
 
