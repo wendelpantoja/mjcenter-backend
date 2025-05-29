@@ -1,14 +1,16 @@
 const PDFDocument = require("pdfkit");
 const bwipjs = require("bwip-js");
+const QRCode = require("qrcode");
 const fs = require("fs");
 
-// === CONFIGURAÇÃO ===
+// === CONFIGURAÇÃO ETIQUETA ===
 const ETIQUETA_LARGURA = 295;
+const ETIQUETA_ALTURA_SMALL = 147;
 const ETIQUETA_ALTURA = 150;
 const ETIQUETA_LARGURA_SMALL = 145;
 
 const PADDING_HORIZONTAL_DEFAULT = 2;
-const PADDING_HORIZONTAL_SMALL = 10;
+const PADDING_HORIZONTAL_SMALL = 3;
 const PADDING_VERTICAL = 10;
 
 const A4_LARGURA = 595;
@@ -40,10 +42,21 @@ class Etiqueta {
         });
     }
 
+    static async gerarQRCode(url) {
+        return await QRCode.toBuffer(url, {
+            width: 100,
+            margin: 1,
+            color: {
+                dark: '#000000',
+                light: '#FFFFFF',
+            },
+        });
+    }
+
     static async gerenteSmall(doc, produto, x, y) {
         doc.lineWidth(0.5);
         doc.strokeColor("#000000");
-        doc.rect(x, y, ETIQUETA_LARGURA_SMALL, ETIQUETA_ALTURA).stroke();
+        doc.rect(x, y, ETIQUETA_LARGURA_SMALL, ETIQUETA_ALTURA_SMALL).stroke();
 
         const margemInterna = 8;
 
@@ -79,25 +92,20 @@ class Etiqueta {
         const barcodeBuffer = await bwipjs.toBuffer({
             bcid: "code39",
             text: produto.codigoBarras,
-            scaleX: 2.4,
+            scaleX: 1.0,
             scaleY: 1.2,
             height: 10,
             includetext: false,
         });
 
-        doc.image(barcodeBuffer, x + margemInterna, y + 100, { width: 110, height: 18 });
+        doc.image(barcodeBuffer, x + margemInterna, y + 100, { width: 85, height: 18 });
 
         doc.font("Helvetica")
             .fontSize(10)
             .text(produto.codigoBarras, x + margemInterna, y + 121);
 
-        doc.font("Helvetica")
-            .fontSize(8)
-            .text("www.mjcenter.com.br", x + margemInterna, y + 135, {
-                width: ETIQUETA_LARGURA * 0.50,
-                height: 30,
-                ellipsis: true,
-            });
+        const qr = await this.gerarQRCode('https://www.mjcenter.com.br');
+        doc.image(qr, x + ETIQUETA_LARGURA_SMALL - 47, y + 98, { width: 40, height: 40 });
     }
 
     static async gerenteDefault(doc, produto, x, y) {
@@ -113,7 +121,7 @@ class Etiqueta {
         }
 
         doc.font("Helvetica")
-            .fontSize(8)
+            .fontSize(10)
             .text(produto.descricao, x + margemInterna, y + 28, {
                 width: ETIQUETA_LARGURA * 0.50,
                 height: 30,
@@ -126,7 +134,7 @@ class Etiqueta {
 
         doc.font("Helvetica-Bold")
             .fontSize(8)
-            .text(`AVISTA`, x + margemInterna, y + 71);
+            .text(`AVISTA`, x + margemInterna, y + 73);
 
         const precoFormatado = new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -135,7 +143,7 @@ class Etiqueta {
 
         doc.font("Helvetica-Bold")
             .fontSize(16)
-            .text(precoFormatado, x + margemInterna, y + 81);
+            .text(precoFormatado, x + margemInterna, y + 83);
 
         const barcodeBuffer = await bwipjs.toBuffer({
             bcid: "code39",
@@ -150,7 +158,7 @@ class Etiqueta {
 
         doc.font("Helvetica")
             .fontSize(10)
-            .text(produto.codigoBarras, x + margemInterna, y + 121);
+            .text(produto.codigoBarras, x + margemInterna, y + 120);
 
         const ladoDireitoX = divisor;
 
@@ -163,20 +171,15 @@ class Etiqueta {
         const simulacao = this.gerarSimulacoes(produto.preco);
 
         simulacao.forEach((item, index) => {
-            const offsetY = 22 + index * 33;
+            const offsetY = 22 + index * 28;
 
             doc.font("Helvetica").fontSize(9).text(`ENTRADA + ${item.entrada[0]} = ${item.entrada[1]}`, ladoDireitoX - 40, y + offsetY);
             doc.font("Helvetica").fontSize(7).text(`TOTAL A PRAZO = ${item.total}`, ladoDireitoX - 40, y + offsetY + 10);
             doc.font("Helvetica").fontSize(7).text(`JUROS AO MÊS = ${item.juros}%`, ladoDireitoX - 40, y + offsetY + 17.5);
         });
 
-        doc.font("Helvetica")
-            .fontSize(8)
-            .text("www.mjcenter.com.br", x + margemInterna, y + 135, {
-                width: ETIQUETA_LARGURA * 0.50,
-                height: 30,
-                ellipsis: true,
-            });
+        const qr = await this.gerarQRCode('https://www.mjcenter.com.br');
+        doc.image(qr, x + ETIQUETA_LARGURA - 94, y + 106, { width: 40, height: 40 });
     }
 
     static async gerarPDFEtiqueta(produtos, isDefaultValue) {
