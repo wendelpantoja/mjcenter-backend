@@ -4,9 +4,9 @@ class Balance {
     static async getBalance(req, res) {
         try {
             const document = req.params.document;
-
+        
             const response = await instance.get(
-                `${process.env.API_BASE_URL}${process.env.API_BALANCE_CLIENT}`,
+                `${process.env.API_BALANCE_CLIENT}?`,
                 {
                     params: {
                         documentoTerceiro: document,

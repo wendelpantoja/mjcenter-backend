@@ -12,10 +12,18 @@ class Clients {
                 }})
             }
 
-            const nameUrl = nome.replace(/\s+/g, "%20")
             const cpf = doc.replace(/[.-]/g, '')
 
-            const response = await instance.get(`/apps/api/terceiros/?inicio=0&quantidade=10&tipopessoa=pf&nome=${nameUrl}&documento=${cpf}&token=${process.env.API_AUTHORIZATION_CODE}`)
+            const response = await instance.get(`${process.env.API_CLIENTS}?`, {
+                params: {
+                    tipoPessoa: "PF",
+                    nome: nome.toUpperCase(),
+                    documento: cpf,
+                    inicio: 0,
+                    quantidade: 15,
+                    token: process.env.API_AUTHORIZATION_CODE
+                }
+            })
             
             if(Array.isArray(response.data) && response.data.length === 0) {
                 return res.json({messages: {

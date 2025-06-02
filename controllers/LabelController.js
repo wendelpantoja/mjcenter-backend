@@ -16,9 +16,12 @@ class Etiqueta {
 
         try {
             const promises = products.map(async (codigo) => {
-                const { data } = await instance.get(
-                    `/apps/api/produtos?codigoSistema=${codigo}&token=${process.env.API_AUTHORIZATION_CODE}`
-                );
+                const { data } = await instance.get(`${process.env.API_PRODUCTS}?`, {
+                    params: {
+                        codigoSistema: codigo,
+                        token: process.env.API_AUTHORIZATION_CODE
+                    }
+                });
 
                 if (!data || data.length === 0) {
                     throw new Error(`Produto com código ${codigo} não encontrado`);
