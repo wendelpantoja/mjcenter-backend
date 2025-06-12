@@ -1,222 +1,84 @@
-const fs = require('fs');
-const path = require('path');
-const PdfPrinter = require('pdfmake');
+const instance = require("../services/api.service");
+const createPaymentBooklet = require("../utils/pdf_payment_booklet/createPaymentBooklet");
+
+function transformValue(value) {
+    const newValue = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(value)
+    return newValue
+}
 
 class PaymentBooklet {
-    getClient(req, res) {
-        const A4_WIDTH = 595;
-        const A4_HEIGHT = 842;
+    async getClient(req, res) {
+        const { document, startDate, endDate, dataFilter, entity } = req.body;
 
-        const fonts = {
-        Roboto: {
-            normal: path.join(__dirname, '../fonts', 'Roboto-Regular.ttf'),
-            bold: path.join(__dirname, '../fonts', 'Roboto-Bold.ttf'),
-            italics: path.join(__dirname, '../fonts', 'Roboto-Italic.ttf'),
-            bolditalics: path.join(__dirname, '../fonts', 'Roboto-BoldItalic.ttf')
+        if (!startDate) {
+            return res.status(400).json({ message: "Os campo data precisam ser preenchidos corretamente" });
         }
-        };
 
-        const printer = new PdfPrinter(fonts);
+        if (!entity) {
+            return res.status(400).json({ message: "O campo (entidade) precisa ser preenchido" });
+        }
 
-        // Carrega a logo como base64
-        const logoBase64 = fs.readFileSync(path.join(__dirname, '../logo.png')).toString('base64');
-
-        // Dados das parcelas
-        const parcelas = [
-            {
-                cliente: 'José da Silva',
-                documento: '123.456.789-00',
-                referencia: 'Compra Loja 001',
-                numero: 1,
-                total: 3,
-                vencimento: '10/06/2025',
-                valor: 500.00,
-                descricao: 'Pagamento de produtos diversos',
-            },
-            {
-                cliente: 'José da Silva',
-                documento: '123.456.789-00',
-                referencia: 'Compra Loja 001',
-                numero: 2,
-                total: 3,
-                vencimento: '10/07/2025',
-                valor: 500.00,
-                descricao: 'Pagamento de produtos diversos',
-            },
-            {
-                cliente: 'José da Silva',
-                documento: '123.456.789-00',
-                referencia: 'Compra Loja 001',
-                numero: 3,
-                total: 3,
-                vencimento: '10/08/2025',
-                valor: 500.00,
-                descricao: 'Pagamento de produtos diversos',
-            },
-            {
-                cliente: 'José da Silva',
-                documento: '123.456.789-00',
-                referencia: 'Compra Loja 001',
-                numero: 3,
-                total: 3,
-                vencimento: '10/08/2025',
-                valor: 500.00,
-                descricao: 'Pagamento de produtos diversos',
-            },
-            {
-                cliente: 'José da Silva',
-                documento: '123.456.789-00',
-                referencia: 'Compra Loja 001',
-                numero: 3,
-                total: 3,
-                vencimento: '10/08/2025',
-                valor: 500.00,
-                descricao: 'Pagamento de produtos diversos',
-            },
-        ];
-
-        // Função para gerar carnê PDF
-        function gerarCarne(parcelas) {
-            const content = [];
-
-            parcelas.forEach((parcela) => {
-                content.push(
-                    {
-                    table: {
-                        widths: ['*', 15, 15, 15, '*', '*'],
-                        body: [
-                            [
-                                {
-                                    rowSpan: 2,
-                                    stack: [
-                                        {
-                                            image: `data:image/png;base64,${logoBase64}`,
-                                            width: 60,
-                                            margin: [35, 0, 0, 0]
-                                        },
-                                    ],
-                                    border: [true, true, false, true],
-                                },
-                                {
-                                    colSpan: 4,
-                                    rowSpan: 2,
-                                    text: [
-                                        {
-                                            border: [false, true, true, true],
-                                            text: "MJ CENTER\n",
-                                            bold: true,
-                                            fontSize: 10,
-                                        },
-                                        {
-                                            text: "Fone: 091 3781-3565\n",
-                                            fontSize: 10,
-                                        },
-                                        {
-                                            text: "End: Av Cônego Siqueira, 1700 - Cametá\n",
-                                            fontSize: 10,
-                                        },
-                                        {
-                                            text: "Site: www.mjcenter.com.br",
-                                            fontSize: 10,
-                                        }
-                                    ],
-                                    border: [false, true, false, false],
-                                },
-                                {},
-                                {},
-                                {},
-                                {
-                                    text: `Vencimento: ${parcela.vencimento}`,
-                                    fillColor: '#ffffb2',
-                                    fontSize: 12,
-                                    bold: true,
-                                },
-                            ],
-                            [
-                                {},
-                                {},
-                                {},
-                                {},
-                                {},
-                                {
-                                    text: `Valor: R$ ${parcela.valor.toFixed(2)}`,
-                                    fillColor: '#ffffb2',
-                                    fontSize: 12,
-                                    bold: true
-                                }
-                            ],
-                            [
-                                {colSpan: 2, text: `Parcela: ${parcela.numero}/${parcela.total}`},
-                                {},
-                                {colSpan: 3, text: `Emissão: ${(new Date()).toLocaleDateString()}`},
-                                {},
-                                {},
-                                '(-) Desconto:'
-                            ],
-                            [
-                                {colSpan: 2, text: `Natureza: FINAN`},
-                                {},
-                                {colSpan: 3, text: `Pedido: 00000`},
-                                {},
-                                {},
-                                '(+) Acréscimo:'
-                            ],
-                            [
-                                {
-                                    text: `Cliente: ${parcela.cliente}`,
-                                    colSpan: 5,
-                                    rowSpan: 2,
-                                },
-                                {},
-                                {},
-                                {},
-                                {},
-                                {
-                                    text: "(+) Multa:",
-                                },
-                            ],
-                            [{}, {}, {}, {}, {}, ' '],
-                        ]
-                    },
-                    layout: {
-                        hLineWidth: (i, node) => 1,
-                        vLineWidth: (i, node) => 1,
-                        hLineColor: () => 'black',
-                        vLineColor: () => 'black',
-                    },
-                    margin: [0, 0, 0, 5]
-                    },
-                );
+        try {
+            const response01 = await instance.get(`${process.env.API_BALANCE_CLIENT}?`, {
+                params: {
+                    documentoTerceiro: document,
+                    desde: startDate,
+                    ate: endDate,
+                    filtroData: dataFilter,
+                    entidade: entity,
+                    token: process.env.API_AUTHORIZATION_CODE
+                }
             });
 
-            const docDefinition = {
-                pageSize: 'A4',
-                pageMargins: [40, 10, 40, 10],
-                content,
-                styles: {
-                    header: {
-                        fontSize: 16,
-                        bold: true,
-                        alignment: 'center'
-                    }
-                },
-                defaultStyle: {
-                    font: 'Roboto'
+            if (response01.data.length === 0) {
+                return res.status(404).json({ message: 'Nenhuma parcela encontrada.' });
+            }
+
+            const response02 = await instance.get(`${process.env.API_SALES_ORDER}?`, {
+                params: {
+                    numeros: response01.data[0].numeroDocumento,
+                    desde: startDate,
+                    token: process.env.API_AUTHORIZATION_CODE
                 }
-            };
+            })
 
-            const pdfDoc = printer.createPdfKitDocument(docDefinition);
-            pdfDoc.pipe(fs.createWriteStream('carne.pdf'));
-            pdfDoc.end();
+            const data01 = response01.data;
+            const data02 = response02.data;
+            const produtos = data02.map((data, index) => data.itens)
+            const nomeProdutos = produtos[0].map((data) => data.produto.descricao)
+            const totalAberto = data01
+                .filter(conta => !conta.baixada)
+                .map(dataParcela => ({
+                    vencimento: dataParcela.dataVencimento.replace(/-/g, '/'),
+                    valor: transformValue(dataParcela.valor),
+                    pedido: dataParcela.numeroDocumento,
+                    numeroParcela: dataParcela.numeroParcela,
+                    entidade: dataParcela.entidade.nome,
+                    emissao: dataParcela.dataEmissao.replace(/-/g, '/'),
+                    cliente: dataParcela.nomeTerceiro,
+                    documento: dataParcela.documentoTerceiro,
+                    valorTotalParcelas: transformValue(dataParcela.valorTotalParcelas),
+                    totalParcela: dataParcela.totalParcelas,
+                    hitoricoParcela: dataParcela.historico,
+                    produtos: nomeProdutos.join(', ')
+                }));
+
+            const pdfBuffer = await createPaymentBooklet(totalAberto);
+
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'inline; filename="carne.pdf"'
+            });
+
+            return res.send(pdfBuffer);
+        } catch (error) {
+            console.error("Erro ao gerar carnê:", error.message);
+            return res.status(500).json({ message: "Erro na geração do PDF", detalhe: error.message });
         }
-
-        // Gera o PDF
-        gerarCarne(parcelas);
-
-        res.json({
-            message: "PDF gerado com sucesso"
-        })
     }
 }
 
-module.exports = new PaymentBooklet()
+module.exports = new PaymentBooklet();
