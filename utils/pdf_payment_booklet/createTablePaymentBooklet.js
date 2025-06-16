@@ -236,7 +236,7 @@ function createTablePaymentBooklet(installments) {
                         paddingLeft: () => 2,
                         paddingRight: () => 2
                     },
-                    margin: [17, 4, 0, 0]
+                    margin: [17, 0, 0, 15]
                 }
             ]
         });

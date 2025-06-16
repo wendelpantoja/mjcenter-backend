@@ -19,7 +19,7 @@ function createPaymentBooklet(data) {
         const docDefinition = {
             pageSize: 'A4',
             pageOrientation: 'portrait',
-            pageMargins: [17.5, 5, 1, 1],
+            pageMargins: [17.5, 25, 1, 1],
             content,
             styles: {
                 header: {
