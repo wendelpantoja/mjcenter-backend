@@ -7,6 +7,7 @@ const AuthRouters = require('./routes/auth');
 const ClientsRouters = require('./routes/clients');
 const ProductsRouters = require('./routes/products');
 const UserRouters = require('./routes/user')
+const EntityRouters = require("./routes/entity")
 
 const sequelize = require('./config/database');
 
@@ -20,7 +21,8 @@ app.use(cors());
 app.use(AuthRouters);
 app.use(ClientsRouters);
 app.use(ProductsRouters);
-app.use(UserRouters)
+app.use(UserRouters);
+app.use(EntityRouters);
 
 // Testa e mantém a conexão ativa
 sequelize.authenticate()
