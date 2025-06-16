@@ -29,7 +29,7 @@ function tranformData(parcelas, vendas) {
         valorTotalParcelas: transformValue(parcela.valorTotalParcelas),
         totalParcela: parcela.totalParcelas,
         hitoricoParcela: parcela.historico,
-        produtos
+        produtos: produtos.join(", ")
     };
   });
 }
