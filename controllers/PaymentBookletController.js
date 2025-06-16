@@ -9,6 +9,31 @@ function transformValue(value) {
     return newValue
 }
 
+function tranformData(parcelas, vendas) {
+  return parcelas
+  .filter(parcela => parcela.baixada === false && parcela.totalParcelas > 1)
+  .map(parcela => {
+    const pedidoRelacionado = vendas.find(venda => venda.numero === parcela.numeroDocumento);
+
+    const produtos = pedidoRelacionado?.itens?.map(item => item.descricao) || [];
+
+    return {
+        vencimento: parcela.dataVencimento.replace(/-/g, '/'),
+        valor: transformValue(parcela.valor),
+        pedido: parcela.numeroDocumento,
+        numeroParcela: parcela.numeroParcela,
+        entidade: parcela.entidade.nome,
+        emissao: parcela.dataEmissao.replace(/-/g, '/'),
+        cliente: parcela.nomeTerceiro,
+        documento: parcela.documentoTerceiro,
+        valorTotalParcelas: transformValue(parcela.valorTotalParcelas),
+        totalParcela: parcela.totalParcelas,
+        hitoricoParcela: parcela.historico,
+        produtos
+    };
+  });
+}
+
 class PaymentBooklet {
     async getClient(req, res) {
         const { document, startDate, endDate, dataFilter, entity } = req.body;
@@ -28,7 +53,7 @@ class PaymentBooklet {
                     desde: startDate,
                     ate: endDate,
                     filtroData: dataFilter,
-                    entidade: entity,
+                    entidades: entity,
                     token: process.env.API_AUTHORIZATION_CODE
                 }
             });
@@ -37,36 +62,26 @@ class PaymentBooklet {
                 return res.status(404).json({ message: 'Nenhuma parcela encontrada.' });
             }
 
+            const numerosDocumento = new Set()
+            const parcelas = response01.data
+            parcelas.forEach(parcela => {
+                if(parcela.baixada === false && parcela.totalParcelas > 1) {
+                    numerosDocumento.add(parcela.numeroDocumento)
+                }
+            });
+
             const response02 = await instance.get(`${process.env.API_SALES_ORDER}?`, {
                 params: {
-                    numeros: response01.data[0].numeroDocumento,
-                    desde: startDate,
+                    numeros: [...numerosDocumento].join(','),
                     token: process.env.API_AUTHORIZATION_CODE
                 }
             })
 
-            const data01 = response01.data;
-            const data02 = response02.data;
-            const produtos = data02.map((data, index) => data.itens)
-            const nomeProdutos = produtos[0].map((data) => data.produto.descricao)
-            const totalAberto = data01
-                .filter(conta => !conta.baixada)
-                .map(dataParcela => ({
-                    vencimento: dataParcela.dataVencimento.replace(/-/g, '/'),
-                    valor: transformValue(dataParcela.valor),
-                    pedido: dataParcela.numeroDocumento,
-                    numeroParcela: dataParcela.numeroParcela,
-                    entidade: dataParcela.entidade.nome,
-                    emissao: dataParcela.dataEmissao.replace(/-/g, '/'),
-                    cliente: dataParcela.nomeTerceiro,
-                    documento: dataParcela.documentoTerceiro,
-                    valorTotalParcelas: transformValue(dataParcela.valorTotalParcelas),
-                    totalParcela: dataParcela.totalParcelas,
-                    hitoricoParcela: dataParcela.historico,
-                    produtos: nomeProdutos.join(', ')
-                }));
+            const vendas = response02.data
 
-            const pdfBuffer = await createPaymentBooklet(totalAberto);
+            const parcelasCarne = tranformData(parcelas, vendas)
+
+            const pdfBuffer = await createPaymentBooklet(parcelasCarne);
 
             res.set({
                 'Content-Type': 'application/pdf',
