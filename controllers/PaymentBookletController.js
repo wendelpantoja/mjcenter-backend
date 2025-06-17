@@ -37,7 +37,7 @@ function tranformData(parcelas, vendas) {
 class PaymentBooklet {
     async getClient(req, res) {
         const { document, startDate, endDate, dataFilter, entity } = req.body;
-
+        
         if (!startDate) {
             return res.status(400).json({ message: "Os campo data precisam ser preenchidos corretamente" });
         }
@@ -50,8 +50,8 @@ class PaymentBooklet {
             const response01 = await instance.get(`${process.env.API_BALANCE_CLIENT}?`, {
                 params: {
                     documentoTerceiro: document,
-                    desde: startDate,
-                    ate: endDate,
+                    desde: startDate === "" ? null : startDate,
+                    ate: endDate === "" ? null : endDate,
                     filtroData: dataFilter,
                     entidades: entity,
                     token: process.env.API_AUTHORIZATION_CODE
