@@ -39,11 +39,19 @@ class PaymentBooklet {
         const { document, startDate, endDate, dataFilter, entity } = req.body;
         
         if (!startDate) {
-            return res.status(400).json({ message: "Os campo data precisam ser preenchidos corretamente" });
+            return res.status(400).json({ 
+                severity: "warning",
+                message: "Aviso",
+                details: "Os campos (data) precisam ser preenchidos corretamente"
+            });
         }
 
         if (!entity) {
-            return res.status(400).json({ message: "O campo (entidade) precisa ser preenchido" });
+            return res.status(400).json({ 
+                severity: "warning",
+                message: "Aviso",
+                details: "O campo (entidade) precisa ser preenchido"
+             });
         }
 
         try {
@@ -59,7 +67,11 @@ class PaymentBooklet {
             });
 
             if (response01.data.length === 0) {
-                return res.status(404).json({ message: 'Nenhuma parcela encontrada.' });
+                return res.status(404).json({
+                    severity: "warning",
+                    message: "Aviso",
+                    details: "Nenhuma parcela encontrada."
+                });
             }
 
             const numerosDocumento = new Set()
@@ -91,7 +103,11 @@ class PaymentBooklet {
             return res.send(pdfBuffer);
         } catch (error) {
             console.error("Erro ao gerar carnê:", error.message);
-            return res.status(500).json({ message: "Erro na geração do PDF", detalhe: error.message });
+            return res.status(500).json({
+                severity: "error", 
+                message: "Error", 
+                details: "Erro na geração do PDF"
+            });
         }
     }
 }
