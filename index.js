@@ -6,6 +6,7 @@ const app = express();
 const ClientsRouters = require('./routes/clients');
 const ProductsRouters = require('./routes/products');
 const EntityRouters = require("./routes/entity")
+const StockRouters = require("./routes/stock")
 
 const port = 3000;
 
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(ClientsRouters);
 app.use(ProductsRouters);
 app.use(EntityRouters);
+app.use(StockRouters);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
