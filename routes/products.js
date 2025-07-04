@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
-const Label = require("../controllers/LabelController")
+const Product = require("../controllers/ProductsController")
 
-router.post("/api/products", Label.getProductToLabel);
+router.get("/api/product/:id", Product.getProduct);
 
 module.exports = router
