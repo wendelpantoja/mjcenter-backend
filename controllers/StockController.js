@@ -1,48 +1,78 @@
-const instance = require("../services/api.service");
+const instance = require("../services/api.service")
 
-class Stock {
+class Product {
     async getStock(req, res) {
-        const { internalCodes, entitys, changedAfter } = req.body;
+        const { systemCode, description } = req.body
 
-        if (!process.env.API_STOCK || !process.env.API_AUTHORIZATION_CODE) {
+        if(!systemCode && !description) {
+            return res.status(400).json({ error: "Preencha o código ou descrição para buscar estoque"})
+        }
+
+        if (!process.env.API_PRODUCTS || !process.env.API_AUTHORIZATION_CODE) {
             return res.status(500).json({ error: "Configuração da API incompleta." });
         }
 
-        if (!entitys?.length || !changedAfter) {
-            return res.status(400).json({ error: "Informe as entidades e a data!" });
-        }
-
-        // Aceita apenas formato dd-mm-yyyy HH:MM:ss (com hífens)
-        const isValidDate = /^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$/.test(changedAfter);
-
-        if (!isValidDate) {
-            return res.status(400).json({ error: "Formato de data inválido. Use dd-mm-yyyy HH:MM:ss" });
-        }
-
         try {
-            const response = await instance.get(process.env.API_STOCK, {
+            const response = await instance.get(`${process.env.API_PRODUCTS}`, {
                 params: {
-                    codigosInternos: internalCodes,
-                    entidades: entitys,
-                    alteradoApos: changedAfter,
+                    codigoSistema: systemCode,
+                    descricao: description,
                     inicio: 0,
-                    quantidade: 100,
+                    quantidade: 150,
                     token: process.env.API_AUTHORIZATION_CODE
                 }
             });
-
             const data = response.data;
 
-            if (!data || (Array.isArray(data) && data.length === 0)) {
-                return res.status(404).json({ error: "Nenhum item de estoque encontrado." });
+            if (!data || data.length === 0) {
+                return res.status(404).json({ error: "Nenhum produto foi encontrado." });
             }
 
-            res.json(data);
+            const products = data.map((product) => {
+
+                return {
+                    id: product.id,
+                    systemCode: product.codigoSistema,
+                    description: product.descricao,
+                    price: product.preco
+                }
+            })
+
+            const idsProducts = products.map(product => product.id)
+
+            const response02 = await instance.get(`${process.env.API_STOCK}`, {
+                params: {
+                    produtos: idsProducts.join(","),
+                    token: process.env.API_AUTHORIZATION_CODE
+                }
+            })
+            const stock = response02.data
+
+            const productsById = new Map(products.map(p => [p.id, p]));
+
+            const expandedProducts = stock
+            .filter(item => 
+                productsById.has(item.idProduto) && item.quantidade > 0
+            )
+            .map(item => {
+                const baseProduct = productsById.get(item.idProduto);
+                return {
+                ...baseProduct,
+                stockLocation: item.entidade?.nome || "Local desconhecido",
+                stockQuantity: item.quantidade
+                };
+            });
+
+            if(!expandedProducts || expandedProducts.length === 0) {
+                return res.status(404).json({ error: "Não foi encontrado estoque para o produto"})
+            }
+
+            res.json(expandedProducts);
         } catch (error) {
-            console.error("Erro ao buscar estoque:", error.message);
-            res.status(500).json({ error: "Erro interno ao buscar estoque." });
+            console.log(error.message)
+            res.status(500).json({ error: "Erro ao buscar produto." });
         }
     }
 }
 
-module.exports = new Stock();
+module.exports = new Product();
