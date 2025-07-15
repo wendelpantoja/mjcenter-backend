@@ -11,7 +11,7 @@ class EntityController {
         const entityReduced = entitys.map((entity) => {
             return {
                 nome: entity.nome,
-                idEmpresa: entity.idEmpresa
+                idEmpresa: entity.id
             }
         })
         res.json(entityReduced)
