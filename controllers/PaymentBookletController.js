@@ -38,11 +38,11 @@ class PaymentBooklet {
     async getClient(req, res) {
         const { document, startDate, endDate, dataFilter, entity } = req.body;
         
-        if (!startDate) {
+        if (!startDate || !endDate) {
             return res.status(400).json({ 
                 severity: "warning",
                 message: "Aviso",
-                details: "Os campos (data) precisam ser preenchidos corretamente"
+                details: "É necessário informar as datas (Desde e Até) para gerar o carnê"
             });
         }
 
