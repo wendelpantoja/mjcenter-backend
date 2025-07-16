@@ -5,11 +5,19 @@ class Product {
         const { systemCode, description } = req.body
 
         if(!systemCode && !description) {
-            return res.status(400).json({ error: "Preencha o código ou descrição para buscar estoque"})
+            return res.status(400).json({ 
+                severity: "warning",
+                message: "Aviso",
+                details: "Preencha o código ou descrição para verificar estoque"
+            })
         }
 
         if (!process.env.API_PRODUCTS || !process.env.API_AUTHORIZATION_CODE) {
-            return res.status(500).json({ error: "Configuração da API incompleta." });
+            return res.status(500).json({
+                severity: "error",
+                message: "Error", 
+                details: "Configuração da API incompleta." 
+            });
         }
 
         try {
@@ -25,7 +33,11 @@ class Product {
             const data = response.data;
 
             if (!data || data.length === 0) {
-                return res.status(404).json({ error: "Nenhum produto foi encontrado." });
+                return res.status(404).json({
+                    severity: "warning",
+                    message: "Aviso", 
+                    details: "Nenhum produto foi encontrado." 
+                });
             }
 
             const products = data.map((product) => {
@@ -64,13 +76,20 @@ class Product {
             });
 
             if(!expandedProducts || expandedProducts.length === 0) {
-                return res.status(404).json({ error: "Não foi encontrado estoque para o produto"})
+                return res.status(404).json({
+                    severity: "warning",
+                    message: "Aviso",  
+                    details: "Não foi encontrado estoque para o produto"
+                })
             }
 
             res.json(expandedProducts);
         } catch (error) {
-            console.log(error.message)
-            res.status(500).json({ error: "Erro ao buscar produto." });
+            res.status(500).json({
+                severity: "error",
+                message: "Error", 
+                details: "Erro ao buscar produto." 
+            });
         }
     }
 }
